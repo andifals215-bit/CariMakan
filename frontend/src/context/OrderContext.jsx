@@ -15,8 +15,8 @@ export const OrderProvider = ({ children }) => {
     const createOrder = (user, items, total, paymentMethod, shippingAddress) => {
         const newOrder = {
             id: `INV-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`,
-            userEmail: user.email,
-            userName: user.name,
+            userEmail: user?.email || 'guest@carimakan.com',
+            userName: user?.name || 'Guest',
             items,
             total,
             paymentMethod,

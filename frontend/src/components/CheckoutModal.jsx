@@ -47,7 +47,7 @@ function CheckoutModal({ isOpen, onClose, onOrderSuccess }) {
         setSimProgress(0);
     };
 
-    // Simulate Payment Progress Bar
+    // Simulate Payment Progress Bar — only increments the counter
     useEffect(() => {
         let interval;
         if (simulating && step === 3) {
@@ -55,11 +55,6 @@ function CheckoutModal({ isOpen, onClose, onOrderSuccess }) {
                 setSimProgress(prev => {
                     if (prev >= 100) {
                         clearInterval(interval);
-                        setSimulating(false);
-                        // Save order to history
-                        const newOrder = createOrder(user, cart, cartTotal, paymentMethod === 'qris' ? `QRIS (${ewalletType.toUpperCase()})` : paymentMethod === 'bank_tf' ? 'Transfer Bank' : 'COD / Tunai', { address, phone });
-                        clearCart();
-                        onOrderSuccess(newOrder); // pass to receipt
                         return 100;
                     }
                     return prev + 10;
@@ -68,6 +63,24 @@ function CheckoutModal({ isOpen, onClose, onOrderSuccess }) {
         }
         return () => clearInterval(interval);
     }, [simulating, step]);
+
+    // When progress reaches 100, finalize the order
+    useEffect(() => {
+        if (simProgress >= 100 && simulating) {
+            setSimulating(false);
+            const methodLabel = paymentMethod === 'qris' 
+                ? `QRIS (${ewalletType.toUpperCase()})` 
+                : paymentMethod === 'bank_tf' 
+                    ? 'Transfer Bank' 
+                    : 'COD / Tunai';
+            const newOrder = createOrder(user, [...cart], cartTotal, methodLabel, { address, phone });
+            clearCart();
+            // Small delay to let state settle before showing receipt
+            setTimeout(() => {
+                onOrderSuccess(newOrder);
+            }, 200);
+        }
+    }, [simProgress, simulating, paymentMethod, ewalletType, createOrder, user, cart, cartTotal, address, phone, clearCart, onOrderSuccess]);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
