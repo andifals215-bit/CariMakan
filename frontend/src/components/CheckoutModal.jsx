@@ -17,18 +17,7 @@ function CheckoutModal({ isOpen, onClose, onOrderSuccess }) {
     const [simulating, setSimulating] = useState(false);
     const [simProgress, setSimProgress] = useState(0);
 
-    useEffect(() => {
-        if (!isOpen) {
-            setStep(1);
-            setAddress('');
-            setPhone('');
-            setPaymentMethod('qris');
-            setSimulating(false);
-            setSimProgress(0);
-        }
-    }, [isOpen]);
 
-    if (!isOpen) return null;
 
     const handleNextStep = (e) => {
         e.preventDefault();

@@ -231,21 +231,27 @@ function CartDrawer() {
             </div>
 
             {/* Local Auth Modal (in case guest clicks checkout) */}
-            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+            {isAuthModalOpen && (
+                <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+            )}
 
             {/* Checkout Wizard Modal */}
-            <CheckoutModal 
-                isOpen={isCheckoutOpen} 
-                onClose={() => setIsCheckoutOpen(false)} 
-                onOrderSuccess={handleOrderSuccess}
-            />
+            {isCheckoutOpen && (
+                <CheckoutModal 
+                    isOpen={isCheckoutOpen} 
+                    onClose={() => setIsCheckoutOpen(false)} 
+                    onOrderSuccess={handleOrderSuccess}
+                />
+            )}
 
             {/* Digital Cashier Receipt Modal */}
-            <ReceiptModal 
-                isOpen={isReceiptOpen} 
-                order={latestOrder} 
-                onClose={handleCloseReceipt}
-            />
+            {isReceiptOpen && latestOrder && (
+                <ReceiptModal 
+                    isOpen={isReceiptOpen} 
+                    order={latestOrder} 
+                    onClose={handleCloseReceipt}
+                />
+            )}
         </>
     );
 }
