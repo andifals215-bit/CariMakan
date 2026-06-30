@@ -45,7 +45,49 @@ sequenceDiagram
 
 ---
 
-## 📝 2. Pemenuhan 8 Aspek Kriteria Penilaian Ujian
+## 🚀 2. Penjelasan Detail Fitur-Fitur Baru yang Ditambahkan & Diperbarui
+
+Berikut adalah rincian fungsionalitas dan mekanisme dari fitur-fitur premium terbaru yang diintegrasikan ke dalam sistem CariMakan:
+
+### A. Sistem Autentikasi Dua Level (Pelanggan & Admin)
+Sistem memiliki modul registrasi dan login terenkripsi lokal di sisi klien yang membagi pengguna menjadi dua peran (*role*) berbeda:
+1.  **Role Pelanggan (*Customer/Member*):**
+    *   Dapat mendaftar akun baru, login, menjelajahi menu, menambahkan item ke keranjang belanja, dan melakukan pembayaran checkout.
+    *   **Akun Demo:** `user@carimakan.com` (Sandi: `user123`)
+2.  **Role Administrator (*Superadmin*):**
+    *   Memiliki hak akses khusus untuk masuk ke halaman Dashboard Pengelolaan Web (`/admin`).
+    *   Tombol akses ke Dashboard Admin akan otomatis muncul pada menu avatar profil di Header setelah login sebagai admin sukses dilakukan.
+    *   **Akun Demo:** `admin@carimakan.com` (Sandi: `admin123`)
+*   *Mekanisme Keamanan:* Halaman admin diproteksi secara ketat. Jika pengguna biasa mencoba mengakses URL `/admin` secara manual, sistem akan otomatis melakukan *redirect* (lempar balik) ke halaman Beranda demi menjaga keamanan.
+
+### B. Gerbang Pembayaran Checkout Multi-Metode (QRIS, TF Bank, COD)
+Tombol checkout pada keranjang belanja diproteksi agar **wajib login** terlebih dahulu. Setelah masuk akun, pengguna disajikan formulir Wizard 3 langkah:
+1.  **Langkah 1: Kontak & Pengiriman:** Mengisi nomor WhatsApp aktif dan alamat pengantaran lengkap. Nama penerima otomatis terkunci sesuai nama akun login.
+2.  **Langkah 2: Metode Pembayaran:** Pengguna dapat memilih satu dari tiga opsi pembayaran:
+    *   **Scan QRIS / E-Wallet:** Mendukung simulasi bayar lewat GoPay, OVO, atau DANA. Menampilkan kode barcode QRIS dinamis berbasis SVG yang bersih.
+    *   **Transfer Bank:** Menyediakan informasi rekening BCA & Mandiri CariMakan Indonesia untuk transaksi konseptual.
+    *   **Bayar di Tempat (COD / Tunai):** Menyediakan instruksi penyediaan uang pas saat kurir makanan tiba.
+3.  **Langkah 3: Simulasi Progress Bar Verifikasi:** Untuk memberikan pengalaman pembayaran yang hidup, sistem menjalankan *progress bar loading* asinkronus (0% hingga 100%) selama 3 detik untuk mensimulasikan pencocokan dana/transaksi secara otomatis sebelum mengeluarkan struk belanja.
+
+### C. Nota Belanja Digital / Struk Kasir Printable (Bisa Cetak Fisik)
+Setelah progress bar verifikasi pembayaran menyentuh angka 100%, modal secara otomatis tertutup dan digantikan oleh popup **Digital Cashier E-Receipt**:
+*   Menampilkan No. Invoice acak unik (contoh: `INV-654321-987`) dan waktu transaksi presisi saat itu.
+*   Menampilkan rincian alamat pengiriman, kontak WhatsApp, daftar menu masakan yang dibeli beserta subtotal, biaya pengiriman gratis (promo), dan total pembayaran akhir.
+*   **Fitur Cetak Struk:** Tombol **"Cetak Struk"** terhubung langsung dengan fungsi cetak bawaan browser (`window.print()`). Ketika diklik, sistem secara otomatis mengisolasi bagian struk kasir tersebut dan memunculkan dialog print untuk dicetak langsung via printer kertas / PDF.
+
+### D. Dashboard Manajemen Web Admin (CRUD Menu & Status Order)
+Diakses melalui halaman `/admin`, dashboard ini memfasilitasi admin dengan kontrol penuh terhadap operasional restoran:
+1.  **Panel Statistik Finansial:** Menampilkan kalkulasi total omset kumulatif secara real-time dari pesanan yang masuk dan jumlah total transaksi.
+2.  **Kelola Pesanan Masuk:** Admin dapat melihat daftar pesanan, nama pembeli, menu yang dipesan, total harga, alamat, serta **merubah status pesanan secara real-time** melalui dropdown selector (`Menunggu Pembayaran` -> `Sedang Dimasak` -> `Siap Diantar` -> `Selesai`).
+3.  **Manajemen Menu (CRUD Lokal):** Admin dapat menambahkan menu makanan baru (mengisi nama, kategori, harga, tautan gambar, bahan-bahan, dan instruksi memasak) yang akan langsung masuk ke database menu lokal, atau menghapus menu yang sudah tidak tersedia.
+
+### E. Penanganan Error Routing Vercel & Optimasi React Hooks
+1.  **Vercel SPA Fallback (Anti-404):** Penempatan berkas `vercel.json` di root proyek utama menjamin saat halaman detail (`/detail/:id`) atau `/admin` direfresh manual di server live, Vercel tidak melempar error 404, melainkan langsung meneruskannya ke mesin React Router.
+2.  **Pemberantasan React Error #310:** Mencegah error fatal runtime produksi (layar putih) dengan membuang pola *early return hooks* pada `CheckoutModal` dan menerapkan *conditional rendering* dinamis di parent (`CartDrawer`). Komponen modal akan dibongkar (*unmount*) seutuhnya saat ditutup untuk membersihkan memori dan state secara natural.
+
+---
+
+## 📝 3. Pemenuhan 8 Aspek Kriteria Penilaian Ujian
 
 Berikut adalah penjelasan lengkap dan **letak file/baris kode** dari masing-masing kriteria penilaian untuk ditunjukkan langsung jika dosen bertanya:
 
@@ -56,9 +98,9 @@ Berikut adalah penjelasan lengkap dan **letak file/baris kode** dari masing-masi
     *   [components/](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/): Direktori khusus komponen modular.
         *   [Header.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/Header.jsx) - Header navigasi dinamis (menampilkan menu masuk/daftar atau profil & dashboard admin).
         *   [CartDrawer.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/CartDrawer.jsx) - Sidebar keranjang belanja interaktif.
-        *   [AuthModal.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/AuthModal.jsx) - Modal dialog login dan registrasi.
-        *   [CheckoutModal.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/CheckoutModal.jsx) - Formulir alamat, whatsapp, pilihan pembayaran, dan progress bar verifikasi.
-        *   [ReceiptModal.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/ReceiptModal.jsx) - Struk/Nota digital resmi yang mendukung cetak printer fisik.
+        *   [AuthModal.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/AuthModal.jsx) [NEW] - Modal dialog login dan registrasi.
+        *   [CheckoutModal.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/CheckoutModal.jsx) [NEW] - Formulir alamat, whatsapp, pilihan pembayaran, dan progress bar verifikasi.
+        *   [ReceiptModal.jsx](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/ReceiptModal.jsx) [NEW] - Struk/Nota digital resmi yang mendukung cetak printer fisik.
 
 ---
 
@@ -111,7 +153,7 @@ Berikut adalah penjelasan lengkap dan **letak file/baris kode** dari masing-masi
 *   **Penjelasan:** Proyek dikonfigurasi untuk siap di-deploy ke platform cloud seperti **Vercel**. Untuk menangani masalah *routing fallback* (error 404 pada SPA saat halaman detail di-refresh di luar rute beranda), kami menggunakan konfigurasi file `vercel.json` di root proyek.
 *   **Letak Kode/Berkas:**
     *   [vercel.json](file:///c:/Users/Hype/Downloads/CariMakan/vercel.json): Mengarahkan ulang semua rute pencarian URL dinamis (`/(.*)`) ke `/index.html` agar diproses langsung secara internal oleh React Router.
-    *   [CartDrawer.jsx: L233-L250](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/CartDrawer.jsx#L233-L250): Mencegah **React Error #310 (Rendered more hooks than during previous render)** pada saat production Vercel dengan melakukan *conditional rendering* `{isOpen && <Component />}` pada modal `AuthModal`, `CheckoutModal`, dan `ReceiptModal` untuk menjamin urutan eksekusi React Hooks tetap konsisten.
+    *   [CartDrawer.jsx: L233-L250](file:///c:/Users/Hype/Downloads/CariMakan/frontend/src/components/CartDrawer.jsx#L233-L250): Mencegah **React Error #310 (Rendered more hooks than during previous render)** pada saat production Vercel dengan melakukan *conditional rendering* `{isAuthModalOpen && <AuthModal />}`, `{isCheckoutOpen && <CheckoutModal />}` dan `{isReceiptOpen && <ReceiptModal />}` untuk menjamin urutan eksekusi React Hooks tetap konsisten.
 
 ---
 
