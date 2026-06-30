@@ -1,6 +1,10 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { CartContext } from '../context/CartContext';
+import { AuthContext } from '../context/AuthContext';
 import { formatIDR } from '../utils/price';
+import CheckoutModal from './CheckoutModal';
+import ReceiptModal from './ReceiptModal';
+import AuthModal from './AuthModal';
 
 function CartDrawer() {
     const { 
@@ -13,6 +17,13 @@ function CartDrawer() {
         cartCount,
         clearCart 
     } = useContext(CartContext);
+
+    const { user } = useContext(AuthContext);
+
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+    const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+    const [latestOrder, setLatestOrder] = useState(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const drawerRef = useRef(null);
 
@@ -30,6 +41,28 @@ function CartDrawer() {
             document.body.style.overflow = '';
         };
     }, [isCartOpen, setIsCartOpen]);
+
+    const handleCheckoutClick = () => {
+        if (!user) {
+            // User must login first
+            setIsAuthModalOpen(true);
+            return;
+        }
+        // Proceed to checkout flow
+        setIsCheckoutOpen(true);
+    };
+
+    const handleOrderSuccess = (order) => {
+        setIsCheckoutOpen(false);
+        setLatestOrder(order);
+        setIsReceiptOpen(true);
+    };
+
+    const handleCloseReceipt = () => {
+        setIsReceiptOpen(false);
+        setLatestOrder(null);
+        setIsCartOpen(false); // close cart drawer as well
+    };
 
     return (
         <>
@@ -51,7 +84,7 @@ function CartDrawer() {
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-orange-50/80 to-amber-50/60">
                     <div>
-                        <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -178,22 +211,13 @@ function CartDrawer() {
 
                         {/* Checkout Button */}
                         <button 
-                            onClick={() => {
-                                const pesan = cart.map(item => 
-                                    `• ${item.strMeal} x${item.quantity} = ${formatIDR(item.price * item.quantity)}`
-                                ).join('\n');
-                                const total = formatIDR(cartTotal);
-                                const waText = encodeURIComponent(
-                                    `Halo Admin CariMakan! 🍽️\n\nSaya ingin memesan:\n${pesan}\n\n💰 Total: ${total}\n\nTerima kasih!`
-                                );
-                                window.open(`https://wa.me/6281234567890?text=${waText}`, '_blank');
-                            }}
+                            onClick={handleCheckoutClick}
                             className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-black py-4 rounded-2xl shadow-lg shadow-primary/25 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2.5 text-base mb-3"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                             </svg>
-                            Checkout via WhatsApp
+                            Checkout & Bayar Sekarang
                         </button>
                         
                         <button 
@@ -205,6 +229,23 @@ function CartDrawer() {
                     </div>
                 )}
             </div>
+
+            {/* Local Auth Modal (in case guest clicks checkout) */}
+            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+
+            {/* Checkout Wizard Modal */}
+            <CheckoutModal 
+                isOpen={isCheckoutOpen} 
+                onClose={() => setIsCheckoutOpen(false)} 
+                onOrderSuccess={handleOrderSuccess}
+            />
+
+            {/* Digital Cashier Receipt Modal */}
+            <ReceiptModal 
+                isOpen={isReceiptOpen} 
+                order={latestOrder} 
+                onClose={handleCloseReceipt}
+            />
         </>
     );
 }

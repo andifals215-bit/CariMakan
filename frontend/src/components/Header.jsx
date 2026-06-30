@@ -1,10 +1,18 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
+import { AuthContext } from '../context/AuthContext';
+import AuthModal from './AuthModal';
 
 function Header() {
     const { cartCount, toggleCart } = useContext(CartContext);
+    const { user, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
+
     const [bounce, setBounce] = useState(false);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
 
     // Trigger bounce animation when cartCount changes
     useEffect(() => {
@@ -14,6 +22,23 @@ function Header() {
             return () => clearTimeout(timer);
         }
     }, [cartCount]);
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = () => {
+        logout();
+        setShowDropdown(false);
+        navigate('/');
+    };
 
     return (
         <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-40 transition-all duration-300 border-b border-orange-100/50 shadow-[0_2px_20px_-3px_rgba(0,0,0,0.04)]">
@@ -49,14 +74,60 @@ function Header() {
                         )}
                     </button>
 
-                    {/* User Avatar Placeholder */}
-                    <div className="hidden sm:flex w-9 h-9 rounded-full bg-gradient-to-tr from-gray-200 to-gray-100 items-center justify-center text-gray-500 overflow-hidden shadow-inner border border-gray-200 cursor-pointer hover:shadow-md hover:border-orange-200 transition-all duration-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                    </div>
+                    {/* Authentication Logic Profile Avatar Dropdown */}
+                    {user ? (
+                        <div className="relative" ref={dropdownRef}>
+                            <button 
+                                onClick={() => setShowDropdown(!showDropdown)}
+                                className="flex items-center gap-2 p-1 bg-gray-50 border border-gray-200 rounded-full hover:border-primary/40 focus:outline-none transition-all cursor-pointer"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-400 to-amber-400 text-white flex items-center justify-center font-black text-sm uppercase shadow-sm">
+                                    {user.name.charAt(0)}
+                                </div>
+                                <span className="hidden md:inline text-xs font-black text-gray-700 pr-2 select-none">{user.name}</span>
+                            </button>
+
+                            {/* Dropdown Options */}
+                            {showDropdown && (
+                                <div className="absolute right-0 mt-2.5 w-48 bg-white border border-orange-100 rounded-2xl shadow-xl py-2 z-50 animate-slide-up">
+                                    <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Masuk Sebagai</p>
+                                        <p className="text-xs font-extrabold text-gray-800 line-clamp-1">{user.name}</p>
+                                    </div>
+                                    
+                                    {/* Admin Specific Action Link */}
+                                    {user.role === 'admin' && (
+                                        <Link 
+                                            to="/admin" 
+                                            onClick={() => setShowDropdown(false)}
+                                            className="flex items-center gap-2 px-4 py-2 text-xs font-black text-gray-700 hover:bg-orange-50 hover:text-primary transition-colors"
+                                        >
+                                            🔑 Dashboard Admin
+                                        </Link>
+                                    )}
+
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="w-full text-left flex items-center gap-2 px-4 py-2 text-xs font-black text-red-500 hover:bg-red-50 transition-colors"
+                                    >
+                                        🚪 Keluar Akun
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={() => setIsAuthModalOpen(true)}
+                            className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white text-xs font-black px-4.5 py-2.5 rounded-xl shadow-md shadow-primary/15 transition-all duration-300 active:scale-95 cursor-pointer"
+                        >
+                            Masuk / Daftar
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {/* Global Auth Modal portal */}
+            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </header>
     );
 }
