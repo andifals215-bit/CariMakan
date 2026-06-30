@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #F97316; /* Vibrant Orange */
+  --color-primary-dark: #EA580C;
+  --color-accent: #F59E0B; /* Amber */
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", "Segoe UI", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-[#FAF9F6] text-gray-900 relative overflow-x-hidden min-h-screen;
+  }
+}
+
+/* Custom background grid pattern */
+.bg-grid-pattern {
+  background-image: radial-gradient(#e5e7eb 1.2px, transparent 1.2px);
+  background-size: 28px 28px;
+}
+
+/* Keyframes for ambient floating blobs */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.9);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 50px) scale(0.85);
+  }
+  66% {
+    transform: translate(50px, -30px) scale(1.1);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 18s infinite ease-in-out;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 22s infinite ease-in-out;
+}
+
+/* Toast slide-up animation */
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+/* Hide scrollbar for carousel */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
